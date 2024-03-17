@@ -20,6 +20,8 @@ const QRScanner = ({ onClose }) => {
 	const [boxSize, setBoxSize] = useState(null);
 	// const { t } = useTranslation();
 	const [zoomLevel, setZoomLevel] = useState(1);
+	const [hasCameraPermission, setHasCameraPermission] = useState(false);
+
 
 	const handleZoomChange = (event) => {
 		const newZoomLevel = Number(event.target.value);
@@ -39,25 +41,41 @@ const QRScanner = ({ onClose }) => {
 	};
 
 	useEffect(() => {
-		navigator.mediaDevices.enumerateDevices()
-			.then(mediaDevices => {
-				const videoDevices = mediaDevices.filter(({ kind }) => kind === "videoinput");
-				setDevices(videoDevices);
-
-				// Find and prioritize the back camera if it exists
-				const backCameraIndex = videoDevices.findIndex(device => device.label.toLowerCase().includes('back'));
-				if (backCameraIndex !== -1) {
-					setCurrentDeviceIndex(backCameraIndex);
-				}
-
-				setCameraReady(true);
+		// This effect requests camera access
+		navigator.mediaDevices.getUserMedia({ video: true })
+			.then(stream => {
+				// Here, we know the user has granted access
+				setHasCameraPermission(true);
+				stream.getTracks().forEach(track => track.stop()); // Stop using the camera
 			})
 			.catch(error => {
-				console.error("Error accessing camera:", error);
-				setCameraReady(false);
+				console.error("Camera access denied:", error);
 			});
 	}, []);
 
+	useEffect(() => {
+		if (hasCameraPermission) {
+			// Now enumerate devices after permission has been granted
+			navigator.mediaDevices.enumerateDevices()
+				.then(mediaDevices => {
+					const videoDevices = mediaDevices.filter(({ kind }) => kind === "videoinput");
+					setDevices(videoDevices);
+	
+					const backCameraIndex = videoDevices.findIndex(device => device.label.toLowerCase().includes('back'));
+					if (backCameraIndex !== -1) {
+						setCurrentDeviceIndex(backCameraIndex);
+					} else {
+						setCurrentDeviceIndex(0); // Default to the first camera if no back camera is found
+					}
+	
+					setCameraReady(true);
+				})
+				.catch(error => {
+					console.error("Error enumerating devices:", error);
+				});
+		}
+	}, [hasCameraPermission]);
+	
 	const switchCamera = () => {
 		if (devices.length > 1) {
 			const newIndex = (currentDeviceIndex + 1) % devices.length;
