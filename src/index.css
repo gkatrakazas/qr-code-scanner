@@ -1,3 +1,8 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@keyframes scan-vertical {
+  0%, 100% { top: calc(0% + var(--scanning-range)); }
+  50% { top: calc(100% - var(--scanning-range)); }
+}
