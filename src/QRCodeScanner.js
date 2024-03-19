@@ -200,14 +200,8 @@ const QRScanner = ({ onClose }) => {
 	};
 
 	const onUserMedia = () => {
-		if (webcamRef.current && webcamRef.current.stream) {
-			const videoTrack = webcamRef.current.stream.getVideoTracks()[0];
-			if (videoTrack) {
-				const settings = videoTrack.getSettings();
-				console.log(`Current camera resolution: ${settings.width}x${settings.height}`);
-			}
+
 			waitForVideoDimensions();
-		}
 	};
 	
 	const currentCameraType = devices[currentDeviceIndex]?.label.toLowerCase().includes('back') ? 'back' : 'front';
@@ -215,17 +209,17 @@ const QRScanner = ({ onClose }) => {
 	
 	let idealWidth, idealHeight;
 	if (maxResolution) {
-		
-		if (maxResolution.width / maxResolution.height < 2 / 3) {
+		console.log(maxResolution);
+		if ( (maxResolution.width / maxResolution.height) > 5 / 4) {
 			idealHeight = maxResolution.height;
-			idealWidth = idealHeight * (3 / 2);
+			idealWidth = idealHeight * (5 / 4);
 		} else {
 			idealWidth = maxResolution.width;
-			idealHeight = idealWidth * (2 / 3);
+			idealHeight = idealWidth * (4 / 5);
 		}
 	} else {
 		idealWidth = 1920;
-		idealHeight = 1280;
+		idealHeight = 1536;
 	}
 	return (
 		<div className="qr-code-scanner bg-white">
