@@ -74,7 +74,7 @@ const QRScanner = ({ onClose }) => {
 							width: capabilities.width?.max || 0,
 							height: capabilities.height?.max || 0
 						};
-					
+
 						if (isBackCamera && (!bestBackCamera || bestBackCamera.resolution.width * bestBackCamera.resolution.height < resolution.width * resolution.height)) {
 							bestBackCamera = { device, resolution };
 						} else if (!isBackCamera && (!bestFrontCamera || bestFrontCamera.resolution.width * bestFrontCamera.resolution.height < resolution.width * resolution.height)) {
@@ -169,6 +169,7 @@ const QRScanner = ({ onClose }) => {
 			console.log('adjust', adjust);
 
 			document.documentElement.style.setProperty('--scanning-range', adjust + 'px');
+			document.documentElement.style.setProperty('--scanning', size + 'px');
 			console.log(size);
 			setBoxSize(size);
 		}
@@ -201,26 +202,25 @@ const QRScanner = ({ onClose }) => {
 
 	const onUserMedia = () => {
 
-			waitForVideoDimensions();
+		waitForVideoDimensions();
 	};
-	
+
 	const currentCameraType = devices[currentDeviceIndex]?.label.toLowerCase().includes('back') ? 'back' : 'front';
 	const maxResolution = bestCameraResolutions[currentCameraType];
-	
+
 	let idealWidth, idealHeight;
 	if (maxResolution) {
 		console.log(maxResolution);
-		if ( (maxResolution.width / maxResolution.height) > 5 / 4) {
-			idealHeight = maxResolution.height;
-			idealWidth = idealHeight * (5 / 4);
-		} else {
+		if ((maxResolution.width < maxResolution.height)) {
+			idealHeight = maxResolution.width;
 			idealWidth = maxResolution.width;
-			idealHeight = idealWidth * (4 / 5);
+
+		} else {
+			idealHeight = maxResolution.height;
+			idealWidth = maxResolution.height;
 		}
-	} else {
-		idealWidth = 1920;
-		idealHeight = 1536;
 	}
+
 	return (
 		<div className="qr-code-scanner bg-white">
 			<div className={`absolute inset-0 ${!cameraReady ? 'flex justify-center items-center' : ''}`}>
@@ -255,10 +255,10 @@ const QRScanner = ({ onClose }) => {
 							screenshotFormat="image/jpeg"
 							videoConstraints={{
 								deviceId: devices[currentDeviceIndex]?.deviceId,
-								height: { ideal: idealHeight  },
-								width: { ideal: idealWidth  }
+								height: { ideal: idealHeight },
+								width: { ideal: idealWidth }
 							}}
-							style={{ width: '100%', transform: `scale(${zoomLevel})`, transformOrigin: 'center' }}
+							style={{ height: 'auto', transform: `scale(${zoomLevel})`, transformOrigin: 'center', width: '100%',  }}
 							onUserMedia={onUserMedia}
 						/>
 						{boxSize && (

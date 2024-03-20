@@ -3,6 +3,13 @@
 @tailwind utilities;
 
 @keyframes scan-vertical {
-  0%, 100% { top: calc(0% + var(--scanning-range)); }
-  50% { top: calc(100% - var(--scanning-range)); }
+
+  0%,
+  100% {
+    transform: translateY(calc(-50% + var(--scanning)/2 - var(--scanning-range)));
+  }
+
+  50% {
+    transform: translateY(calc(-50% - var(--scanning)/2 + var(--scanning-range)));
+  }
 }
