@@ -2,14 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-@keyframes scan-vertical {
+.scan-region-highlight-svg {
+  stroke: white !important;
+}
 
-  0%,
-  100% {
-    transform: translateY(calc(-50% + var(--scanning)/2 - var(--scanning-range)));
-  }
-
-  50% {
-    transform: translateY(calc(-50% - var(--scanning)/2 + var(--scanning-range)));
-  }
+.code-outline-highlight{
+stroke: green!important;
 }
