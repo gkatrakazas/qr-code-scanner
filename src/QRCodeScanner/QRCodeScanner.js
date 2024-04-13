@@ -3,7 +3,8 @@ import Webcam from 'react-webcam';
 import jsQR from 'jsqr';
 import { BsQrCodeScan } from 'react-icons/bs';
 import { PiCameraRotateFill } from 'react-icons/pi';
-import Spinner from './Spinner';
+import Spinner from '../Spinner';
+import { useTranslation } from 'react-i18next';
 import { FaCheckCircle } from "react-icons/fa";
 import CornerBox from './CornerBox';
 import ScanningLine from './ScanningLine';
@@ -19,9 +20,9 @@ const QRScanner = ({ onClose }) => {
 	const [currentDeviceIndex, setCurrentDeviceIndex] = useState(0);
 	const [qrDetected, setQrDetected] = useState(false);
 	const [boxSize, setBoxSize] = useState(null);
-	// const { t } = useTranslation();
 	const [zoomLevel, setZoomLevel] = useState(1);
-	const [hasCameraPermission, setHasCameraPermission] = useState();
+	const [hasCameraPermission, setHasCameraPermission] = useState(null);
+	const { t } = useTranslation();
 
 	const handleZoomChange = (event) => {
 		const newZoomLevel = Number(event.target.value);
@@ -40,18 +41,18 @@ const QRScanner = ({ onClose }) => {
 		onClose();
 	};
 
-    useEffect(() => {
-        // Request camera access
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then(stream => {
-                setHasCameraPermission(true);
-                stream.getTracks().forEach(track => track.stop());
-            })
-            .catch(error => {
-                console.error("Camera access denied:", error);
-                setHasCameraPermission(false);
-            });
-    }, []);
+	useEffect(() => {
+		navigator.mediaDevices.getUserMedia({ video: true })
+			.then(stream => {
+				setHasCameraPermission(true);
+				stream.getTracks().forEach(track => track.stop());
+			})
+			.catch(error => {
+				console.error("Camera access denied:", error);
+				setHasCameraPermission(false);
+			});
+	}, []);
+
 
 	useEffect(() => {
 		if (hasCameraPermission) {
@@ -66,8 +67,6 @@ const QRScanner = ({ onClose }) => {
 						const stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: device.deviceId } });
 						const track = stream.getVideoTracks()[0];
 						const capabilities = track.getCapabilities();
-						console.log(device, capabilities);
-
 						const isBackCamera = device.label.toLowerCase().includes('back');
 						const resolution = {
 							width: capabilities.width?.max || 0,
@@ -80,7 +79,7 @@ const QRScanner = ({ onClose }) => {
 							bestFrontCamera = { device, resolution };
 						}
 
-						track.stop(); // Make sure to stop the track to release the camera
+						track.stop();
 					}
 
 					const filteredDevices = [];
@@ -97,15 +96,14 @@ const QRScanner = ({ onClose }) => {
 					});
 
 					setDevices(filteredDevices);
-					console.log('filteredDevices', filteredDevices)
-					// Find the index of the best back camera in the filteredDevices array
+
 					const backCameraIndex = filteredDevices.findIndex(device =>
 						device.label.toLowerCase().includes('back'));
 
 					if (backCameraIndex !== -1) {
 						setCurrentDeviceIndex(backCameraIndex);
 					} else {
-						setCurrentDeviceIndex(0); // Default to the first camera if no back camera is identified
+						setCurrentDeviceIndex(0);
 					}
 					setCameraReady(true);
 				})
@@ -162,16 +160,12 @@ const QRScanner = ({ onClose }) => {
 			const width = webcamElement.offsetWidth;
 			const height = webcamElement.offsetHeight;
 			const size = Math.min(width, height) * 0.9;
-			console.log(width, height, size, height - width);
-			let adjust = 20;
+			let scanningMargin = 20;
 			if (height > width) {
-				adjust = (height - size) / 2;
+				scanningMargin = (height - size) / 2;
 			}
-			console.log('adjust', adjust);
-
-			document.documentElement.style.setProperty('--scanning-range', adjust + 'px');
+			document.documentElement.style.setProperty('--scanning-margin', scanningMargin + 'px');
 			document.documentElement.style.setProperty('--scanning', size + 'px');
-			console.log(size);
 			setBoxSize(size);
 		}
 	};
@@ -202,16 +196,15 @@ const QRScanner = ({ onClose }) => {
 	};
 
 	const onUserMedia = () => {
-
 		waitForVideoDimensions();
 	};
+
 
 	const currentCameraType = devices[currentDeviceIndex]?.label.toLowerCase().includes('back') ? 'back' : 'front';
 	const maxResolution = bestCameraResolutions[currentCameraType];
 
 	let idealWidth, idealHeight;
 	if (maxResolution) {
-		console.log(maxResolution);
 		if ((maxResolution.width < maxResolution.height)) {
 			idealHeight = maxResolution.width;
 			idealWidth = maxResolution.width;
@@ -220,18 +213,21 @@ const QRScanner = ({ onClose }) => {
 			idealHeight = maxResolution.height;
 			idealWidth = maxResolution.height;
 		}
+	} else {
+		idealWidth = 1080;
+		idealHeight = 1080;
 	}
 
 	return (
 		<div className="fixed inset-0 flex items-center justify-center z-50">
 			<div className="absolute inset-0 bg-black opacity-50"></div>
 
-            {hasCameraPermission===false ? (
-                <div className="bg-white p-4 rounded-lg shadow-lg w-full lg:w-[33.33%] sm:w-[66.67%] z-10 relative m-4">
+			{hasCameraPermission === false ? (
+				<div className="bg-white p-4 rounded-lg shadow-lg w-full lg:w-[33.33%] sm:w-[66.67%] z-10 relative m-4">
 					<div className="flex items-start justify-between border-b rounded-t dark:border-gray-600">
 						<h2 className="text-lg font-bold mb-2 text-custom-blue">
 							<BsQrCodeScan size={20} className="inline mr-1 mb-1" />
-							xaxa
+							{t('qrCodeScanner.title')}
 						</h2>
 
 						<button
@@ -245,18 +241,20 @@ const QRScanner = ({ onClose }) => {
 						</button>
 					</div>
 					<hr className="mb-2 border-t border-custom-blue/80" />
-                    <p className='text-gray-700'>Please allow camera access to use the QR scanner.</p>
-                </div>
-            ) : (!cameraReady || loading) ? (
-					<div className="flex items-center justify-center h-24">
-						<Spinner />
-					</div>
-				) : (
-					<div className="bg-white p-4 rounded-lg shadow-lg w-full lg:w-[33.33%] sm:w-[66.67%] z-10 relative m-4">
-						<div className="flex items-start justify-between border-b rounded-t dark:border-gray-600">
+					<p className='text-red-600'>
+						{t('qrCodeScanner.cameraPermissionAllow')}
+						</p>
+				</div>
+			) : (!cameraReady || loading) ? (
+				<div className="flex items-center justify-center h-24">
+					<Spinner />
+				</div>
+			) : (
+				<div className="bg-white p-4 rounded-lg shadow-lg w-full lg:w-[33.33%] sm:w-[66.67%] z-10 relative m-4">
+					<div className="flex items-start justify-between border-b rounded-t dark:border-gray-600">
 						<h2 className="text-lg font-bold mb-2 text-custom-blue">
 							<BsQrCodeScan size={20} className="inline mr-1 mb-1" />
-							xaxa
+							{t('qrCodeScanner.title')}
 						</h2>
 
 						<button
@@ -271,7 +269,7 @@ const QRScanner = ({ onClose }) => {
 					</div>
 					<hr className="mb-2 border-t border-custom-blue/80" />
 					<p className="italic pd-2 text-gray-700">
-						Target the QR Code, and you will redirect to proceed with the process
+						{t('qrCodeScanner.description')}
 					</p>
 					<div className="webcam-container" style={{ position: 'relative', overflow: 'hidden' }}>
 						<Webcam
@@ -283,7 +281,7 @@ const QRScanner = ({ onClose }) => {
 								height: { ideal: idealHeight },
 								width: { ideal: idealWidth }
 							}}
-							style={{ height: 'auto', transform: `scale(${zoomLevel})`, transformOrigin: 'center', width: '100%',  }}
+							style={{ height: 'auto', transform: `scale(${zoomLevel})`, transformOrigin: 'center', width: '100%', }}
 							onUserMedia={onUserMedia}
 						/>
 						{boxSize && (
@@ -326,7 +324,7 @@ const QRScanner = ({ onClose }) => {
 						)}
 					</div>
 				</div>
-				)}
+			)}
 		</div>
 	);
 };

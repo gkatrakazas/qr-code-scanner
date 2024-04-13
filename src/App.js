@@ -1,4 +1,4 @@
-import QRCodeScanner from './QRCodeScanner'; // Replace with the actual import path
+import QRCodeScanner from './QRCodeScanner/QRCodeScanner'; // Replace with the actual import path
 import React, { useState } from 'react';
 import { BsQrCodeScan } from 'react-icons/bs';
 

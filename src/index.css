@@ -6,10 +6,10 @@
 
   0%,
   100% {
-    transform: translateY(calc(-50% + var(--scanning)/2 - var(--scanning-range)));
+    transform: translateY(calc(-50% + var(--scanning)/2 - var(--scanning-margin)));
   }
 
   50% {
-    transform: translateY(calc(-50% - var(--scanning)/2 + var(--scanning-range)));
+    transform: translateY(calc(-50% - var(--scanning)/2 + var(--scanning-margin)));
   }
 }
