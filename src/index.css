@@ -13,3 +13,11 @@
     transform: translateY(calc(-50% - var(--scanning)/2 + var(--scanning-margin)));
   }
 }
+
+.scan-region-highlight-svg {
+  stroke: white !important;
+}
+
+.code-outline-highlight{
+stroke: green!important;
+}
