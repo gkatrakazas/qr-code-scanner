@@ -38,18 +38,41 @@ const QRScanner = ({ onClose }) => {
 		onClose();
 	};
 
+
 	useEffect(() => {
-		navigator.mediaDevices.getUserMedia({ video: true })
-			.then(stream => {
-				setHasCameraPermission(true);
-				stream.getTracks().forEach(track => track.stop());
-			})
-			.catch(error => {
-				console.error("Camera access denied:", error);
+		QrScanner.hasCamera().then(hasCamera => {
+			setHasCameraPermission(true);
+			console.log('hasCamera', hasCamera);
+			if (!hasCamera) {
 				setHasCameraPermission(false);
-			});
+				console.error("No camera available.");
+			}
+		});
 	}, []);
 
+	// useEffect(() => {
+
+	// 	navigator.mediaDevices.getUserMedia({ video: true })
+	// 		.then(stream => {
+	// 			setHasCameraPermission(true);
+	// 			stream.getTracks().forEach(track => track.stop());
+	// 		})
+	// 		.catch(error => {
+	// 			console.error("Camera access denied:", error);
+	// 			setHasCameraPermission(false);
+	// 		});
+	// }, []);
+
+
+	useEffect(() => {
+		if (hasCameraPermission) {
+			QrScanner.listCameras(true).then(cameras => {
+				console.log('cameras', cameras);
+				setDevices(cameras);
+				// Optionally, set the default camera based on preferred 'facingMode'
+			}).catch(error => console.error("Error listing cameras:", error));
+		}
+	}, [hasCameraPermission]);
 
 	useEffect(() => {
 		if (hasCameraPermission) {
@@ -166,17 +189,13 @@ const QRScanner = ({ onClose }) => {
 	let idealWidth, idealHeight;
 	if (maxResolution) {
 		console.log(maxResolution);
+		if ((maxResolution.width < maxResolution.height)) {
+			idealHeight = maxResolution.width;
+			idealWidth = maxResolution.width;
 
-		// Determine the smaller dimension to be the basis for square dimensions
-		let smallerDimension = Math.min(maxResolution.width, maxResolution.height);
-
-		// Cap the dimension at 1920 if it exceeds this value
-		if (smallerDimension > 1920) {
-			idealWidth = 1920;
-			idealHeight = 1920;
 		} else {
-			idealWidth = smallerDimension;
-			idealHeight = smallerDimension;
+			idealHeight = maxResolution.height;
+			idealWidth = maxResolution.height;
 		}
 	}
 

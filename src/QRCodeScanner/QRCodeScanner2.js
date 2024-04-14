@@ -1,13 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Webcam from 'react-webcam';
-import jsQR from 'jsqr';
 import { BsQrCodeScan } from 'react-icons/bs';
 import { PiCameraRotateFill } from 'react-icons/pi';
 import Spinner from '../Spinner';
 import { useTranslation } from 'react-i18next';
 import { FaCheckCircle } from "react-icons/fa";
-import CornerBox from './CornerBox';
-import ScanningLine from './ScanningLine';
 import { RiZoomInFill, RiZoomOutFill } from "react-icons/ri";
 import QrScanner from 'qr-scanner';
 
@@ -20,7 +17,6 @@ const QRScanner = ({ onClose }) => {
 	const [loading, setLoading] = useState(false);
 	const [currentDeviceIndex, setCurrentDeviceIndex] = useState(0);
 	const [qrDetected, setQrDetected] = useState(false);
-	const [boxSize, setBoxSize] = useState(null);
 	const [zoomLevel, setZoomLevel] = useState(1);
 	const [hasCameraPermission, setHasCameraPermission] = useState(null);
 	const { t } = useTranslation();
@@ -235,6 +231,7 @@ const QRScanner = ({ onClose }) => {
 					</p>
 					<div className="webcam-container" style={{ position: 'relative', overflow: 'hidden' }}>
 						<Webcam
+							key={devices[currentDeviceIndex]?.deviceId}
 							audio={false}
 							ref={webcamRef}
 							screenshotFormat="image/jpeg"
@@ -243,18 +240,9 @@ const QRScanner = ({ onClose }) => {
 								height: { ideal: idealHeight },
 								width: { ideal: idealWidth }
 							}}
-							style={{ height: 'auto', transform: `scale(${zoomLevel})`, transformOrigin: 'center', width: '100%', }}
+							style={{ transform: `scale(${zoomLevel})` }}
 							onUserMedia={onUserMedia}
 						/>
-						{boxSize && (
-							<>
-								<CornerBox qrDetected={qrDetected} side="borderLeft" position="borderTop" boxSize={boxSize} />
-								<CornerBox qrDetected={qrDetected} side="borderRight" position="borderTop" boxSize={boxSize} />
-								<CornerBox qrDetected={qrDetected} side="borderLeft" position="borderBottom" boxSize={boxSize} />
-								<CornerBox qrDetected={qrDetected} side="borderRight" position="borderBottom" boxSize={boxSize} />
-								<ScanningLine qrDetected={qrDetected} boxSize={boxSize} />
-							</>
-						)}
 						{qrDetected && (
 							<div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
 								<FaCheckCircle size={100} color="green" />
